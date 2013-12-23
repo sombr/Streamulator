@@ -1,4 +1,2 @@
-$LOAD_PATH.unshift("lib")
-
-require "streamulator/engine"
-require "streamulator/source/file"
+require_relative "streamulator/engine"
+require_relative "streamulator/source/file"

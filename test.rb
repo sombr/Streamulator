@@ -1,4 +1,4 @@
-require "./lib/streamulator"
+require_relative "lib/streamulator"
 include Streamulator::Events
 
 Fiber.new do delay 2; Streamulator::Source::File.new("file1").read(50); end.resume

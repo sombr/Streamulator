@@ -1,4 +1,4 @@
-require "streamulator/engine"
+require_relative "../engine"
 require "fiber"
 
 module Streamulator
