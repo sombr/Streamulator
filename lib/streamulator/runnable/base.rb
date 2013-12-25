@@ -2,27 +2,40 @@ require_relative "../engine"
 
 module Streamulator
   module Runnable
-
-    LOAD_TIME = 3 # sec
-
+    # basic Runnable instance
     class Base
       include Streamulator::Events
+      attr_accessor :pid
 
-      def initialize( auto_start = true, &block )
-        @run_block = block
-        self.start if auto_start
-      end
+      LOAD_TIME = 30 # sec
 
-      def start
-        after_delay LOAD_TIME * rand {
-          fiber = Fiber.new &@run_block
+      def initialize( &block )
+        after_delay (LOAD_TIME * rand) {
+          fiber = Fiber.new &block
           @pid = fiber.object_id
           fiber.resume
         }
       end
 
-      def stop
+    end
 
+    # basic Process with abstract main()
+    class Process
+      include Streamulator::Events
+
+      def main
+        throw "abstract method :main is called"
+      end
+
+      def run
+        @r ||= Base.new {
+          self.main
+          @r = nil
+        }
+      end
+
+      def pid
+        return @r.pid if @r
       end
 
     end

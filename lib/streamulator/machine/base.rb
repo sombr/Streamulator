@@ -4,9 +4,9 @@ require_relative "../runnable/base"
 module Streamulator
   module Machine
 
-    STARTUP_TIME = 5 # sec
+    STARTUP_TIME = 50 # sec
 
-    def machine(&block, mclass = Streamulator::Machine::Base) # returns Machine Generator
+    def machine( mclass = Streamulator::Machine::Base, &block ) # returns Machine Generator
       Enumerator.new { |generator|
         m = mclass.new(&block)
         generator << m
@@ -17,7 +17,7 @@ module Streamulator
       include Streamulator::Events
 
       def initialize( &exec_block )
-        after_delay rand * STARTUP_TIME {
+        after_delay (rand * STARTUP_TIME) {
           self.instance_exec exec_block
         }
       end
