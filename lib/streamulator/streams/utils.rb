@@ -8,11 +8,28 @@ module Streams
       throw "should be <in> => <out> " unless s_in_out.keys.size == 1
       s_in = s_in_out.keys.first
       s_out = s_in_out.values.first
-      chunk_size = opts[:chunk_size] || 100
-      commit     = opts[:commit] || true
+      chunk_size  = opts[:chunk_size] || 100
+      commit      = opts[:commit] || true
+      commit_step = opts[:commit_step]
+      limit       = opts[:limit]
 
-      while ( chunk = s_in.read_chunk(chunk_size) )
+      count = 0
+      last  = limit
+      mchunk = chunk_size
+      while ( chunk = s_in.read_chunk(mchunk) )
         s_out.write_chunk( chunk )
+        count += chunk.size
+
+        unless last.nil?
+          last -= chunk.size
+          mchunk = last if last < mchunk
+        end
+
+        if commit_step && count > commit_step
+          s_out.commit
+          s_in.commit
+          count = 0
+        end
       end
 
       s_out.commit
