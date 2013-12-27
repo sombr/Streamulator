@@ -11,11 +11,15 @@ module Streamulator
       @@queue.push block, ( interval + @@global_time )
     end
 
-    def self.run
+    def self.run( max_time )
+
       while @@queue.length > 0
         event = @@queue.delete_min
         @@global_time = event[1]
         event[0].call()
+        unless max_time.nil?
+          return if @@global_time > max_time
+        end
       end
     end
 
@@ -25,12 +29,14 @@ module Streamulator
   end
 
   module Events
+    @@root_fiber = Fiber.current.object_id
+
     def after_delay( interval, &block )
       Streamulator::Engine.after_delay( interval, &block )
     end
 
-    def run!
-      Streamulator::Engine.run
+    def run!(mtime = nil)
+      Streamulator::Engine.run(mtime)
     end
 
     def debug( string )
@@ -39,6 +45,11 @@ module Streamulator
 
     def delay( interval )
       fiber = Fiber.current
+      if fiber.object_id == @@root_fiber
+        puts "<no delay on root fiber>"
+        return
+      end
+
       after_delay interval do
         fiber.resume
       end

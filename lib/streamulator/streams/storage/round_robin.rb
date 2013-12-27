@@ -1,13 +1,19 @@
 require_relative "../in/round_robin"
 require_relative "../storage"
+require_relative "../../engine"
 
 module Streams
   module Storage
 
     class RoundRobin
       include Streams::Storage::Storage
+      include Streamulator::Events
 
-      def initialize( size: 1024**3 )
+      CREATION_DELAY = 25
+      WRITE_DELAY = 0.2 # per line
+      @@storages = []
+
+      def initialize( name: "", size: 1024**3 )
         @size = size
         @data = {}
         @meta = { storage: 0 }
@@ -15,6 +21,8 @@ module Streams
         @buffer = {}
         @buffer_size = 50 * 1024**2
         @buf = 0
+
+        delay (CREATION_DELAY * ( size / 1024**3 ))
       end
 
       def write( line )
@@ -42,7 +50,7 @@ module Streams
 
       def in( name )
         @clients ||= []
-        c = Streams::In::RoundRobin.new( name, meta: @meta, data: @data )
+        c = Streams::In::RoundRobin.new( name, meta: @meta, data: @data, size: @size )
         @clients.push( c )
         c
       end
@@ -69,9 +77,12 @@ module Streams
         #clean data
           @data.delete_if { |k,v| k > storage && k <= new_pos }
         # //
+        delay_time = 0
         @buffer.each { |k,v|
           @data[ storage + k ] = v
+          delay_time += WRITE_DELAY
         }
+        delay delay_time
         @buf = 0
         @buffer = {}
         @meta[:storage] = new_pos

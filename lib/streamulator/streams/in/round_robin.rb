@@ -1,17 +1,22 @@
 require_relative "../storage/round_robin"
 require_relative "../in"
+require_relative "../../engine"
 
 module Streams
   module In
     class RoundRobin
       include Streams::In::In
+      include Streamulator::Events
 
-      def initialize( name, meta: {}, data: {})
+      READ_TIME = 0.2
+
+      def initialize( name, meta: {}, data: {}, size: 0 )
         @meta = meta
         @data = data
         @meta[name] ||= @meta[:storage]
         @name = name
         @cur_pos ||= @meta[@name]
+        @size = size
       end
 
       def read
@@ -34,14 +39,26 @@ module Streams
             throw "something strange"
           end
         end
+        delay c*READ_TIME
 
-        return chunk
+        return chunk if chunk.size > 0
+        return nil
       end
 
       def commit
         @meta[@name] = @cur_pos
       end
 
+      def lag
+        storage = @meta[:storage]
+        cur = @meta[@name]
+
+        if cur < storage
+          return storage - cur
+        else
+          return (@size - cur) + storage
+        end
+      end
 
     end
   end

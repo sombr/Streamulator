@@ -1,4 +1,5 @@
 require_relative "../filter"
+require 'fiber'
 
 module Streams
   module In
@@ -35,6 +36,7 @@ module Streams
       def commit
         return true
       end
+
     end
 
     class FilteredIn
@@ -57,6 +59,7 @@ module Streams
       def commit
         @filter.commit && @in.commit
       end
+
     end
 
   end
