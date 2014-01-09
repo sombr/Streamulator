@@ -55,6 +55,10 @@ module Streams
         c
       end
 
+      def client_list
+        return @clients.map { |c| c.name }
+      end
+
       private
 
       def flush_buffer

@@ -19,6 +19,10 @@ module Streams
         @size = size
       end
 
+      def name
+        return @name
+      end
+
       def read
         res = read_chunk(1)
         return res if res.nil?
